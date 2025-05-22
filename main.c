@@ -1,0 +1,118 @@
+#include <wchar.h>
+#include <locale.h>
+#include <ncurses.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <time.h>
+
+void print_cell(bool alive);
+bool update(int neighbours, bool status);
+void wait();
+
+int main() {
+  srand(time(NULL));
+  setlocale(LC_ALL, "");
+  initscr();
+  nodelay(stdscr, TRUE);
+  noecho();
+  curs_set(0);
+  clear();
+  
+  int rows, cols, i, j;
+  getmaxyx(stdscr, rows, cols);
+  int neighbours;
+  bool **current_neighbourhood = malloc( rows * sizeof(bool*));
+  for ( i = 0 ; i < rows ; i++ ) {
+    current_neighbourhood[i] = malloc( cols * sizeof(bool));
+  }
+  bool **updated_neighbourhood = malloc( rows * sizeof(bool*));
+  for ( i = 0 ; i < rows ; i++ ) {
+    updated_neighbourhood[i] = malloc( cols * sizeof(bool));
+  }
+
+  for ( i = 0 ; i < rows ; i++ ) {
+    for ( int j = 0 ; j < cols ; j++) {
+      current_neighbourhood[i][j] = (rand() % 2);
+    }
+  }
+
+  for ( i = 0 ; i < rows ; i++ ) {
+    for ( int j = 0 ; j < cols ; j++) {
+      move(i,j);
+      print_cell(current_neighbourhood[i][j]);
+    }
+  }
+
+  while (1) {
+    
+    wait();
+    
+    for ( i = 0 ; i < rows ; i++ ) {
+      for ( j = 0 ; j < cols ; j++) {
+	neighbours = 0;
+	if (i < rows - 1 && current_neighbourhood[i+1][j]) neighbours++;
+	if (j < cols - 1 && current_neighbourhood[i][j+1]) neighbours++;
+	if (i > 0 && current_neighbourhood[i-1][j]) neighbours++;
+	if (j > 0 && current_neighbourhood[i][j-1]) neighbours++;
+	if (i < rows - 1 && j < cols - 1 && current_neighbourhood[i+1][j+1]) neighbours++;
+	if (i < rows - 1 && j > 0 && current_neighbourhood[i+1][j-1]) neighbours++;
+	if (i > 0 && j < cols - 1 && current_neighbourhood[i-1][j+1]) neighbours++;
+	if (i > 0 && j > 0 && current_neighbourhood[i-1][j-1]) neighbours++;
+	updated_neighbourhood[i][j] = update(neighbours, current_neighbourhood[i][j]);
+      }
+    }
+
+    bool **temp = current_neighbourhood;
+    current_neighbourhood = updated_neighbourhood;
+    updated_neighbourhood = temp;
+    
+    for ( i = 0 ; i < rows ; i++ ) {
+      for ( j = 0 ; j < cols ; j++ ) {
+	move(i,j);
+	print_cell(current_neighbourhood[i][j]);
+      }
+    }
+    
+    int ch = getch();
+    if (ch == 'q') {
+        break;
+    }
+    
+  }
+
+  for ( i = 0 ; i < rows ; i++ ) {
+    free(current_neighbourhood[i]);
+    free(updated_neighbourhood[i]);
+  }
+  free(current_neighbourhood);
+  free(updated_neighbourhood);
+  refresh();
+  endwin();
+  return 0;
+}
+
+void print_cell(bool alive) {
+  if (alive) {
+    printw("\u2588"); 
+  }
+  else {
+    printw(" ");
+  }
+}
+
+bool update(int neighbours, bool status) {
+  if ( !status && neighbours == 3 ) {
+    return true;
+  }
+  else if ( status && (neighbours == 2 || neighbours == 3) ) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+void wait() {
+  refresh();
+  napms(100);
+}
