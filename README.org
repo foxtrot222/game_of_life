@@ -8,6 +8,20 @@
 This is a terminal-based implementation of Conway's Game of Life written in C.
 It uses the ~ncurses~ library to display the evolving grid using Unicode block characters.
 
+** Requirements
+
+gcc, make, ncursesw
+
+** Installing
+
+Clone the repository, build the project with make, and run the program as follows:
+#+begin_src shell
+git clone https://github.com/foxtrot222/game_of_life.git
+cd game_of_life
+make
+./game_of_life
+#+end_src
+
 ** How to Play
 
 - Use the *arrow keys* to move the cursor.
